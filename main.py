@@ -1,4 +1,4 @@
-from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -44,20 +44,22 @@ def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path
         private_out.write(private_key.private_bytes(encoding=serialization.Encoding.PEM,
                                                     format=serialization.PrivateFormat.TraditionalOpenSSL,
                                                     encryption_algorithm=serialization.NoEncryption()))
+    encrypted_symmetric_key = public_key.encrypt(symmetric_key.key,
+                                                 padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                                              algorithm=hashes.SHA256(), label=None))
+    with open(symmetric_key_path, 'wb') as key_file:
+        key_file.write(encrypted_symmetric_key)
 
 
-'''parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-gen', '--generation', help='Запускает режим генерации ключей')
 group.add_argument('-enc', '--encryption', help='Запускает режим шифрования')
 group.add_argument('-dec', '--decryption', help='Запускает режим дешифрования')
 args = parser.parse_args()
 if args.generation is not None:
-# генерируем ключи
-else if args.encryption is not None:
-# шифруем
-else:
-# дешифруем'''
-with open('settings.json') as json_file:
-    json_data = json.load(json_file)
-key_generator(json_data['symmetric_key'], json_data['public_key'], json_data['secret_key'])
+    with open('settings.json') as json_file:
+        json_data = json.load(json_file)
+    key_generator(json_data['symmetric_key'], json_data['public_key'], json_data['secret_key'])
+
+
