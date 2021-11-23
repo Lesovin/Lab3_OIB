@@ -1,4 +1,3 @@
-
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -10,10 +9,13 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group(required = True)
-group.add_argument('-gen','--generation',help='Запускает режим генерации ключей')
-group.add_argument('-enc','--encryption',help='Запускает режим шифрования')
-group.add_argument('-dec','--decryption',help='Запускает режим дешифрования')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-gen', '--generation', help='Запускает режим генерации ключей')
+group.add_argument('-enc', '--encryption', help='Запускает режим шифрования')
+group.add_argument('-dec', '--decryption', help='Запускает режим дешифрования')
+
+args = parser.parse_args()
+
 
 args = parser.parse_args()
 if args.generation is not None:
@@ -21,3 +23,4 @@ if args.generation is not None:
 else if args.encryption is not None:
   # шифруем
 else:
+  # дешифруем
