@@ -2,7 +2,7 @@ from cryptography.hazmat.primitives import padding as padding2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
 import os
 import json
@@ -76,6 +76,30 @@ def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_p
         pickle.dump(encrypted_data, file)
 
 
+def decrypt_data(encrypted_text_file_path: str, secret_key_path: str, encrypted_symmetric_key_path: str,
+                 decrypted_text_file_path: str):
+    with open(encrypted_symmetric_key_path, "rb") as file:
+        encrypted_symmetric_key = file.read()
+    with open(secret_key_path, 'rb') as pem_in:
+        private_bytes = pem_in.read()
+    d_private_key = load_pem_private_key(private_bytes, password=None, )
+    decrypted_symmetric_key = d_private_key.decrypt(encrypted_symmetric_key,
+                                                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                                                 algorithm=hashes.SHA256(), label=None))
+    with open(encrypted_text_file_path, 'rb') as file:
+        encrypted_text = pickle.load(file)
+    text = encrypted_text['encrypted_text']
+    iv = encrypted_text['iv']
+    cipher = Cipher(algorithms.SM4(decrypted_symmetric_key), modes.CBC(iv))
+    decryptor = cipher.decryptor()
+    decrypted_text = decryptor.update(text) + decryptor.finalize()
+    unpadder = padding2.ANSIX923(8).unpadder()
+    unpadded_dc_data = unpadder.update(decrypted_text)
+    final_text = unpadded_dc_data.decode('UTF-8')
+    with open(decrypted_text_file_path, 'w') as file:
+        file.write(final_text)
+
+
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-gen', '--generation', help='Запускает режим генерации ключей')
@@ -86,8 +110,13 @@ if args.generation is not None:
     with open('settings.json') as json_file:
         json_data = json.load(json_file)
     key_generator(json_data['symmetric_key'], json_data['public_key'], json_data['secret_key'])
-if args.generation is not None:
+if args.encryption is not None:
     with open('settings.json') as json_file:
         json_data = json.load(json_file)
     encrypt_data(json_data['initial_file'], json_data['secret_key'], json_data['symmetric_key'],
                  json_data['encrypted_file'])
+if args.decryption is not None:
+    with open('settings.json') as json_file:
+        json_data = json.load(json_file)
+    decrypt_data(json_data['encrypted_file'], json_data['secret_key'], json_data['symmetric_key'],
+                 json_data['decrypted_file'])
