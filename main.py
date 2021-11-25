@@ -38,15 +38,16 @@ def key_selection() -> int:
         return 256
 
 
-def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path: str):
+def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path: str) -> int:
     """
         Функция генерирует ключ симметричного алгоритма Camellia, публичный и закрытый ключи ассиметричного алгоритма RSA
         :param: symmetric_key_path: Путь к зашифрованному симметричному ключу
         :param: public_key_path: Путь к открытому ключу ассиметричного алгоритма
         :param: secret_key_path: Путь к закрытому ключу ассимтеричного алгоритма
-        :return: None
+        :return: key: длина ключа
     """
-    symmetric_key = algorithms.Camellia(os.urandom(int(key_selection() / 8)))
+    key = key_selection()
+    symmetric_key = algorithms.Camellia(os.urandom(int(key / 8)))
     keys = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     private_key = keys
     public_key = keys.public_key()
@@ -62,6 +63,7 @@ def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path
                                                               algorithm=hashes.SHA256(), label=None))
     with open(symmetric_key_path, 'wb') as key_file:
         key_file.write(encrypted_symmetric_key)
+    return key
 
 
 def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_path: str,
@@ -140,7 +142,8 @@ args = parser.parse_args()
 if args.generation is not None:
     with open('settings.json') as json_file:
         json_data = json.load(json_file)
-    key_generator(json_data['symmetric_key'], json_data['public_key'], json_data['secret_key'])
+    key_length = key_generator(json_data['symmetric_key'], json_data['public_key'], json_data['secret_key'])
+    print('Длина ключа равна - ' + str(key_length))
 if args.encryption is not None:
     with open('settings.json') as json_file:
         json_data = json.load(json_file)
