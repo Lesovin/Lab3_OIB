@@ -62,7 +62,7 @@ def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_p
     decrypted_symmetric_key = d_private_key.decrypt(encrypted_symmetric_key,
                                                     padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
                                                                  algorithm=hashes.SHA256(), label=None))
-    with open(text_file, "r") as file:
+    with open(text_file, "r", encoding='UTF-8') as file:
         data = file.read()
     pad = padding2.ANSIX923(32).padder()
     text = bytes(data, 'UTF-8')
@@ -90,13 +90,13 @@ def decrypt_data(encrypted_text_file_path: str, secret_key_path: str, encrypted_
         encrypted_text = pickle.load(file)
     text = encrypted_text['encrypted_text']
     iv = encrypted_text['iv']
-    cipher = Cipher(algorithms.SM4(decrypted_symmetric_key), modes.CBC(iv))
+    cipher = Cipher(algorithms.Camellia(decrypted_symmetric_key), modes.CBC(iv))
     decryptor = cipher.decryptor()
     decrypted_text = decryptor.update(text) + decryptor.finalize()
     unpadder = padding2.ANSIX923(8).unpadder()
     unpadded_dc_data = unpadder.update(decrypted_text)
     final_text = unpadded_dc_data.decode('UTF-8')
-    with open(decrypted_text_file_path, 'w') as file:
+    with open(decrypted_text_file_path, 'w', encoding='UTF-8') as file:
         file.write(final_text)
 
 
