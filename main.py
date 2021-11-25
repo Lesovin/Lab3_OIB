@@ -11,6 +11,11 @@ import pickle
 
 
 def key_selection() -> int:
+    """
+    Функция дает пользователю выбрать длину ключа симметричного алгоритма шифрования Camellia - 128, 192, 256 бит
+    :param: None
+    :return: None
+    """
     print("Выберите длину ключа:")
     print("1. 128 бит")
     print("2. 192 бит")
@@ -34,6 +39,13 @@ def key_selection() -> int:
 
 
 def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path: str):
+    """
+        Функция генерирует ключ симметричного алгоритма Camellia, публичный и закрытый ключи ассиметричного алгоритма RSA
+        :param: symmetric_key_path: Путь к зашифрованному симметричному ключу
+        :param: public_key_path: Путь к открытому ключу ассиметричного алгоритма
+        :param: secret_key_path: Путь к закрытому ключу ассимтеричного алгоритма
+        :return: None
+    """
     symmetric_key = algorithms.Camellia(os.urandom(int(key_selection() / 8)))
     keys = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     private_key = keys
@@ -54,6 +66,16 @@ def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path
 
 def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_path: str,
                  encrypted_text_file_path: str):
+    """
+        Функция шифрует текст симметричным алгоритмом Camellia из файла по указанному пути, ключ симметричного алгоритма
+        шифрования зашифрован ассиметричным алгоритмом RSA, поэтому предварительно ключ расшифровывается при помощи
+        закрытого ключа RSA. Зашифрованный текст сохраняется в файл
+        :param: text_file: Путь к файлу с текстом
+        :param: secret_key_path: Путь к закрытому ключу ассиметричного шифра
+        :param: encrypted_symmetric_key_path: Путь к зашифрованному ключу симметричного алгоритма Camellia
+        :param: encrypted_text_file_path: Путь сохранения зашифрованного текста
+        :return: None
+    """
     with open(encrypted_symmetric_key_path, "rb") as file:
         encrypted_symmetric_key = file.read()
     with open(secret_key_path, 'rb') as pem_in:
@@ -78,6 +100,15 @@ def encrypt_data(text_file: str, secret_key_path: str, encrypted_symmetric_key_p
 
 def decrypt_data(encrypted_text_file_path: str, secret_key_path: str, encrypted_symmetric_key_path: str,
                  decrypted_text_file_path: str):
+    """
+           Функция расшифровывает текст из указанного файла, предварительно расшифровывает ключ симметричного алгоритма,
+           который был зашифрован ассиметричным алгоритмом RSA при помощи закрытого ключа
+           :param: encrypted_text_file_path: Путь к зашифрованному тексту
+           :param: secret_key_path: Путь к закрытому ключу ассиметричного шифра
+           :param: encrypted_symmetric_key_path: Путь к зашифрованному ключу симметричного алгоритма шифрования
+           :param: decrypted_text_file_path: Путь к расшифрованному тексту
+           :return: None
+       """
     with open(encrypted_symmetric_key_path, "rb") as file:
         encrypted_symmetric_key = file.read()
     with open(secret_key_path, 'rb') as pem_in:
@@ -115,8 +146,10 @@ if args.encryption is not None:
         json_data = json.load(json_file)
     encrypt_data(json_data['initial_file'], json_data['secret_key'], json_data['symmetric_key'],
                  json_data['encrypted_file'])
+    print('Данные были успешно зашифрованы!')
 if args.decryption is not None:
     with open('settings.json') as json_file:
         json_data = json.load(json_file)
     decrypt_data(json_data['encrypted_file'], json_data['secret_key'], json_data['symmetric_key'],
                  json_data['decrypted_file'])
+    print('Данные были успешно дешифрованы!')
