@@ -14,7 +14,7 @@ def key_selection() -> int:
     """
     Функция дает пользователю выбрать длину ключа симметричного алгоритма шифрования Camellia - 128, 192, 256 бит
     :param: None
-    :return: None
+    :return: Длина ключа
     """
     print("Выберите длину ключа:")
     print("1. 128 бит")
@@ -40,7 +40,8 @@ def key_selection() -> int:
 
 def key_generator(symmetric_key_path: str, public_key_path: str, secret_key_path: str) -> int:
     """
-        Функция генерирует ключ симметричного алгоритма Camellia, публичный и закрытый ключи ассиметричного алгоритма RSA
+        Функция генерирует ключ симметричного алгоритма Camellia, публичный и закрытый ключи ассиметричного алгоритма
+        RSA
         :param: symmetric_key_path: Путь к зашифрованному симметричному ключу
         :param: public_key_path: Путь к открытому ключу ассиметричного алгоритма
         :param: secret_key_path: Путь к закрытому ключу ассимтеричного алгоритма
